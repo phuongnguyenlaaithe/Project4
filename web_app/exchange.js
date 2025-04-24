@@ -711,7 +711,7 @@ async function swapTokensForETH(amountToken, maxSlippagePct) {
 
   // Fetch rates just before the transaction
   let rates = await getExchangeRate(maxSlippagePct);
-  console.log("Calculated Rates:", rates);
+  // console.log("Calculated Rates:", rates);
 
   // Approve the required token amount
   await token_contract.connect(provider.getSigner(defaultAccount)).approve(
@@ -914,6 +914,7 @@ const sanityCheck = async function() {
       var state1 = await getPoolState();
       var expected_tokens_received = 100 * (1 - swap_fee) * start_state.token_eth_rate;
       var user_tokens1 = await token_contract.connect(provider.getSigner(defaultAccount)).balanceOf(defaultAccount);
+      console.log("user tokens 1: ", Number(user_tokens1));
       score += check("Testing simple exchange of ETH to token", swap_fee[0], 
         Math.abs((start_state.token_liquidity - expected_tokens_received) - state1.token_liquidity) < 5 &&
         (state1.eth_liquidity - start_state.eth_liquidity) === 100 &&
@@ -923,6 +924,7 @@ const sanityCheck = async function() {
       var state2 = await getPoolState();
       var expected_eth_received = 90 * (1 - swap_fee) * state1.eth_token_rate;
       var user_tokens2 = await token_contract.connect(provider.getSigner(defaultAccount)).balanceOf(defaultAccount);
+      console.log("user tokens 2: ", Number(user_tokens2));
       score += check("Test simple exchange of token to ETH", swap_fee[0], 
         state2.token_liquidity === (state1.token_liquidity + 90) && 
         Math.abs((state1.eth_liquidity - expected_eth_received) - state2.eth_liquidity) < 5 &&
@@ -936,6 +938,8 @@ const sanityCheck = async function() {
       var expected_tokens_added = 100 * state2.token_eth_rate;
       var state3 = await getPoolState();
       var user_tokens3 = await token_contract.connect(provider.getSigner(defaultAccount)).balanceOf(defaultAccount);
+      console.log("user tokens 2: ", Number(user_tokens2));
+      console.log("user tokens 3: ", Number(user_tokens3));
       score += check("Test adding liquidity", swap_fee[0], 
         state3.eth_liquidity === (state2.eth_liquidity + 100) &&
         Math.abs(state3.token_liquidity - (state2.token_liquidity + expected_tokens_added)) < 5 &&
@@ -956,6 +960,10 @@ const sanityCheck = async function() {
       var approx_tokens_removed = 50 * state4.token_eth_rate + (20 * 100 * swap_fee * 50/5100);
       var state5 = await getPoolState();
       var user_tokens5 = await token_contract.connect(provider.getSigner(defaultAccount)).balanceOf(defaultAccount);
+      console.log(Math.abs(state5.eth_liquidity - (state4.eth_liquidity - approx_eth_removed)));
+      console.log(Math.abs(state5.token_liquidity - (state4.token_liquidity - approx_tokens_removed)));
+      console.log(Number(user_tokens5));
+      console.log(Number(user_tokens4));
       score += check("Test removing liquidity", swap_fee[0], 
         Math.abs(state5.eth_liquidity - (state4.eth_liquidity - approx_eth_removed)) < 10 &&
         Math.abs(state5.token_liquidity - (state4.token_liquidity - approx_tokens_removed)) < 10 &&

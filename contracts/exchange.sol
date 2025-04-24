@@ -131,7 +131,7 @@ contract TokenExchange is Ownable {
         require(token.balanceOf(msg.sender) >= amountTokens, "Insufficient token balance");
 
         // Calculate the current exchange rate before transferring tokens
-        uint current_exchange_rate = ((eth_reserves / 10**18) * multiplier) / token_reserves;
+        uint current_exchange_rate = (eth_reserves * multiplier / 10**18) / token_reserves;
         console.log("eth_reserves:", eth_reserves);
         console.log("token_reserves:", token_reserves);
         console.log("Current Exchange Rate:", current_exchange_rate);
@@ -185,7 +185,10 @@ contract TokenExchange is Ownable {
         require(token_reserves - amountTokens > 0, "Cannot empty token reserves");
 
         // Calculate the exchange rate after removing liquidity
-        uint current_exchange_rate = ((eth_reserves / 10 ** 18) * multiplier) / token_reserves;
+        uint current_exchange_rate = (eth_reserves * multiplier / 10**18) / token_reserves;
+        console.log("Current Exchange Rate:", current_exchange_rate);
+        console.log("Max Exchange Rate:", max_exchange_rate);
+        console.log("Min Exchange Rate:", min_exchange_rate);
         require(current_exchange_rate <= max_exchange_rate, "Slippage too high");
         require(current_exchange_rate >= min_exchange_rate, "Slippage too low");
         // Calculate LP rewards from fee reserves
@@ -212,8 +215,10 @@ contract TokenExchange is Ownable {
         token_reserves -= amountTokens;
 
         // Transfer ETH and Tokens to the user
-        payable(msg.sender).transfer(amountETH + rewardEth);
-        token.transfer(msg.sender, amountTokens + rewardTokens);
+        // payable(msg.sender).transfer(amountETH + rewardEth);
+        // token.transfer(msg.sender, amountTokens + rewardTokens);
+        payable(msg.sender).transfer(amountETH);
+        token.transfer(msg.sender, amountTokens);
     }
 
     // Function removeAllLiquidity: Removes all liquidity that msg.sender is entitled to withdraw
@@ -236,7 +241,7 @@ contract TokenExchange is Ownable {
 
 
         // Calculate the exchange rate
-        uint current_exchange_rate = ((eth_reserves / 10 ** 18) * multiplier) / token_reserves;
+        uint current_exchange_rate = (eth_reserves  * multiplier / 10 ** 18) / token_reserves;
 
         require(current_exchange_rate <= max_exchange_rate, "Slippage: Exchange rate too high");
         require(current_exchange_rate >= min_exchange_rate, "Slippage: Exchange rate too low");
@@ -262,8 +267,10 @@ contract TokenExchange is Ownable {
         eth_reserves -= amountETH;
         token_reserves -= amountTokens;
         // transfer
-        payable(msg.sender).transfer(amountETH + rewardEth);
-        token.transfer(msg.sender, amountTokens + rewardTokens);
+        // payable(msg.sender).transfer(amountETH + rewardEth);
+        // token.transfer(msg.sender, amountTokens + rewardTokens);
+        payable(msg.sender).transfer(amountETH);
+        token.transfer(msg.sender, amountTokens);
 
     }
     /***  Define additional functions for liquidity fees here as needed ***/
@@ -298,13 +305,14 @@ contract TokenExchange is Ownable {
 
         // Calculate the current exchange rate
     
-        uint current_exchange_rate = ((eth_reserves / 10 ** 18) * multiplier) / token_reserves;
+        uint current_exchange_rate = (token_reserves  * multiplier / 10 ** 18) / eth_reserves;
         console.log("Max Exchange Rate:", max_exchange_rate);
         require(current_exchange_rate <= max_exchange_rate, "Slippage: Exchange rate too high");
 
 
         eth_reserves -= amountETH;
-        token_reserves += amountTokensAfterFee;
+        // token_reserves += amountTokensAfterFee;
+        token_reserves += amountTokens;
         console.log("eth_reserves:", eth_reserves);
         console.log("amountETH:", amountETH);
         console.log("fee_reserves:", amountTokensAfterFee);
@@ -332,7 +340,7 @@ contract TokenExchange is Ownable {
         require(eth_reserves > 0 && token_reserves > 0, "Insufficient liquidity in the pool");
 
         uint amountTokens = (amountETHWithFee * token_reserves) / (amountETHWithFee + eth_reserves);
-        uint current_exchange_rate = ((eth_reserves / 10 ** 18) * multiplier) / token_reserves;
+        uint current_exchange_rate = (eth_reserves  * multiplier / 10 ** 18) / token_reserves;
         require(current_exchange_rate <= max_exchange_rate, "Slippage: Exchange rate too high");
         console.log("Current Exchange Rate:", current_exchange_rate);
         console.log("Max Exchange Rate:", max_exchange_rate);
@@ -340,7 +348,7 @@ contract TokenExchange is Ownable {
 
         console.log("eth_reserves:", eth_reserves);
         console.log("token_reserves:", token_reserves);
-        eth_reserves += amountETHWithFee;
+        eth_reserves += amountETH;
         token_reserves -= amountTokens;
         console.log("eth_reserves:", eth_reserves);
         console.log("token_reserves:", token_reserves);
